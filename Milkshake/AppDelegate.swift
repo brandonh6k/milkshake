@@ -279,6 +279,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, LoginProtocol {
             self.windowController!.window?.center()
             self.windowController?.window?.isMovableByWindowBackground = true
             self.register(self) // hotkeys
+            self.applySpectrumSetting()
             self.loginWindowController?.close()
         }
 
@@ -425,6 +426,21 @@ class AppDelegate: NSObject, NSApplicationDelegate, LoginProtocol {
                 let mainVC = cvc as! MainViewController
                 mainVC.nowPlayingViewController.animateSpectrum = false
             }
+        }
+        UserDefaults.standard.set(self.isSpectrumAnimate, forKey: "isSpectrumAnimate")
+    }
+
+    // Restore the persisted spectrum preference (defaults to on when unset).
+    // Called once the main window exists so the menu + now-playing VC reflect it.
+    func applySpectrumSetting() {
+        let enabled = UserDefaults.standard.object(forKey: "isSpectrumAnimate") as? Bool ?? true
+        self.isSpectrumAnimate = enabled
+        self.menuSpectrum?.title = enabled ? "Disable Spectrum" : "Enable Spectrum"
+        // Only touch the now-playing VC if its view (and spectrumView outlet) is
+        // loaded; otherwise NowPlayingViewController.viewDidLoad applies it.
+        if let mainVC = self.windowController?.contentViewController as? MainViewController,
+           mainVC.nowPlayingViewController.isViewLoaded {
+            mainVC.nowPlayingViewController.animateSpectrum = enabled
         }
     }
     

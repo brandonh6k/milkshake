@@ -60,6 +60,8 @@ class NowPlayingViewController: NSViewController {
         self.imageView.addTrackingArea(area)
         self.initState()
         self.setEnable(false)
+        // Apply the persisted spectrum preference now that spectrumView exists.
+        self.animateSpectrum = UserDefaults.standard.object(forKey: "isSpectrumAnimate") as? Bool ?? true
     }
     
     func setRandomAnim() {
