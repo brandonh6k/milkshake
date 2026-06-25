@@ -8,6 +8,7 @@
 
 import Cocoa
 import HotKey
+import MediaPlayer
 
 extension NSStoryboard {
     
@@ -149,7 +150,52 @@ class AppDelegate: NSObject, NSApplicationDelegate, LoginProtocol {
         self.loginWindowController!.window?.makeKeyAndOrderFront(nil)
         self.api.X_AuthToken = "BI2rvoepGAXRGYy3Yr9iVFh7fL+FAYfWG4hJpRtIVdB2DZenI/yXST/g=="
         initStatusItem()
+        setupRemoteCommandCenter()
 //        self.launchMain()
+    }
+
+    // Wire system media controls (media keys + headphone-button clicks) to the
+    // player. macOS maps headphone clicks to these commands automatically:
+    // single click -> togglePlayPause, double -> nextTrack, triple -> previousTrack.
+    // Now Playing metadata/state is published from Music.updateNowPlayingInfo().
+    func setupRemoteCommandCenter() {
+        guard #available(macOS 10.12.2, *) else { return }
+        let cc = MPRemoteCommandCenter.shared()
+
+        cc.togglePlayPauseCommand.isEnabled = true
+        cc.togglePlayPauseCommand.addTarget { [weak self] _ in
+            guard let music = self?.music else { return .noSuchContent }
+            if music.isPlaying() { music.playerPause() } else { music.playerPlay() }
+            return .success
+        }
+
+        cc.playCommand.isEnabled = true
+        cc.playCommand.addTarget { [weak self] _ in
+            guard let music = self?.music else { return .noSuchContent }
+            music.playerPlay()
+            return .success
+        }
+
+        cc.pauseCommand.isEnabled = true
+        cc.pauseCommand.addTarget { [weak self] _ in
+            guard let music = self?.music else { return .noSuchContent }
+            music.playerPause()
+            return .success
+        }
+
+        cc.nextTrackCommand.isEnabled = true
+        cc.nextTrackCommand.addTarget { [weak self] _ in
+            guard let music = self?.music else { return .noSuchContent }
+            music.playNext()
+            return .success
+        }
+
+        cc.previousTrackCommand.isEnabled = true
+        cc.previousTrackCommand.addTarget { [weak self] _ in
+            guard let music = self?.music else { return .noSuchContent }
+            music.playPrev()
+            return .success
+        }
     }
     
     
@@ -250,7 +296,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, LoginProtocol {
         self.api.X_AuthToken = authToken
         
         self.api.billingInfo() { results in
-            self.isPremium = ((results["activeProduct"]?["productTier"] as? String) ?? "").lowercased() == "pandora_premium"
+            self.isPremium = (((results["activeProduct"] as? [String: Any])?["productTier"] as? String) ?? "").lowercased() == "pandora_premium"
             if self.isPremium == false {
                 self.menuArtists.isHidden = true
                 self.menuPlaylist.isHidden = true

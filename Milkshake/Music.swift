@@ -14,6 +14,7 @@ import Cocoa
 import AVKit
 import AVFoundation
 import Accelerate
+import MediaPlayer
 
 class Music: NSObject {
     
@@ -178,9 +179,25 @@ class Music: NSObject {
         self.nowVCDelegate!.musicChangedProtocol(item: self.curPlayingItem)
         self.mainVCDelegate!.musicPlayedProtocol()
         self.mainVCDelegate!.musicChangedProtocol(item: self.curPlayingItem)
-        self.menuVCDelegate!.musicPlayedProtocol()        
+        self.menuVCDelegate!.musicPlayedProtocol()
+        self.updateNowPlayingInfo()
     }
-    
+
+    // Publishes track metadata + playback state to the system Now Playing
+    // center. Required for media-key / headphone-button routing (see
+    // MPRemoteCommandCenter setup in AppDelegate) and the Control Center widget.
+    func updateNowPlayingInfo() {
+        if #available(macOS 10.12.2, *) {
+            let center = MPNowPlayingInfoCenter.default()
+            var info = [String: Any]()
+            info[MPMediaItemPropertyTitle] = self.curPlayingItem.name ?? "Milkshake"
+            info[MPMediaItemPropertyArtist] = self.curPlayingItem.artistName ?? ""
+            info[MPMediaItemPropertyAlbumTitle] = self.curPlayingItem.albumTitle ?? ""
+            center.nowPlayingInfo = info
+            center.playbackState = self.isPlaying() ? .playing : .paused
+        }
+    }
+
     func addTimeObserver() {
         if let playerItem = self._cur_player.currentItem {
             self._addTimeObserver(playerItem: playerItem)
@@ -213,24 +230,27 @@ class Music: NSObject {
             self.nowVCDelegate!.musicPlayedProtocol()
             self.mainVCDelegate!.musicPlayedProtocol()
             self.menuVCDelegate!.musicPlayedProtocol()
+            self.updateNowPlayingInfo()
         }
     }
-    
+
     func playerPause() {
         if isPlaying() {
             self._cur_player.pause()
             self.nowVCDelegate!.musicPausedProtocol()
             self.mainVCDelegate!.musicPausedProtocol()
             self.menuVCDelegate!.musicPausedProtocol()
+            self.updateNowPlayingInfo()
         }
     }
-    
+
     // Remove current playing item and stop
     func playerStop() {
         if isPlaying() {
             self._cur_player.pause()
             self.removeTimeObserver()
             self._cur_player.replaceCurrentItem(with: nil)
+            self.updateNowPlayingInfo()
         }
     }
 
