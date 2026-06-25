@@ -40,8 +40,8 @@ class TapManager: NSObject {
     
     let tapInit: MTAudioProcessingTapInitCallback = {
         (tap, clientInfo, tapStorageOut) in
-        let nonOptionalSelf = clientInfo!.assumingMemoryBound(to: AppDelegate.self).pointee
-        // print("init \(tap, clientInfo, tapStorageOut, nonOptionalSelf)\n")
+        // clientInfo is unused; do not dereference it (it points to TapManager,
+        // not AppDelegate — reinterpreting + retaining it crashes).
     }
     
     let tapFinalize: MTAudioProcessingTapFinalizeCallback = {
