@@ -234,6 +234,7 @@ class MainViewController: NSViewController {
         self.stationResultsViewController.searchTableView.reloadData()
         
         appDelegate.radio.playStation(stationId: musicItem.stationId!, isStationStart: true, lastPlayedTrackToken: "")
+        self.loadNowPlaying(self)
     }
     
     override func controlTextDidChange(_ obj: Notification) {
