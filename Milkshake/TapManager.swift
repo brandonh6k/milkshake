@@ -16,7 +16,7 @@ class TapManager: NSObject {
     static var fftHelper: NIFFTHelper?
     static var tapAddr: MTAudioProcessingTap?
     
-    func tap() -> Unmanaged<MTAudioProcessingTap>? {
+    func tap() -> MTAudioProcessingTap? {
         var callbacks = MTAudioProcessingTapCallbacks(
             version: kMTAudioProcessingTapCallbacksVersion_0,
             clientInfo: UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque()),
@@ -26,15 +26,15 @@ class TapManager: NSObject {
             unprepare: tapUnprepare,
             process: tapProcess)
         
-        var tap: Unmanaged<MTAudioProcessingTap>?
-        
+        var tap: MTAudioProcessingTap?
+
         let err = MTAudioProcessingTapCreate(kCFAllocatorDefault, &callbacks, kMTAudioProcessingTapCreationFlag_PostEffects, &tap)
-        
+
         print("err: \(err)\n")
         if err == noErr { }
-        
-        TapManager.tapAddr = tap?.takeRetainedValue()
-        
+
+        TapManager.tapAddr = tap
+
         return tap
     }
     

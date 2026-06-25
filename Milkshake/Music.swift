@@ -79,7 +79,7 @@ class Music: NSObject {
                 if length > 0.0  {
                     if let audioTrack = playerItem.asset.tracks(withMediaType: AVMediaType.audio).first {
                         let inputParams = AVMutableAudioMixInputParameters(track: audioTrack)
-                        inputParams.audioTapProcessor = tap?.takeUnretainedValue()
+                        inputParams.audioTapProcessor = tap
                         let audioMix = AVMutableAudioMix()
                         audioMix.inputParameters = [inputParams]
                         playerItem.audioMix = audioMix
